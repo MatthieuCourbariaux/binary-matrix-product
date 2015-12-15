@@ -22,7 +22,7 @@ unsigned long int float2bool(float* array)
     for (int i = 0; i < 64; i++)
     {
         sign = (array[i]>0);
-        rvalue = rvalue & (sign<<i);
+        rvalue = rvalue | (sign<<i);
     }
     
     return rvalue;
