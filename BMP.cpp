@@ -149,3 +149,106 @@ MatrixXf BMP(MatrixXf A,MatrixXf B)
     
     return C;
 }
+
+MatrixXf no_block(MatrixXf A,MatrixXf B)
+{ 
+    int I = (int)A.rows();
+    int J = (int)B.cols();
+    int K = (int)B.rows();
+    
+    MatrixXf C(I,J);
+    C.setZero();
+    
+    float * ptA = &A(0,0);
+    float * ptB = &B(0,0);
+    float * ptC = &C(0,0);
+    
+    int i, j, k;
+    float* ptAi, *ptCi, *ptBk;
+    float Aik;
+    
+    // default is shared for openmp
+    #pragma omp parallel for private(i,j,k,Aik, ptAi, ptCi, ptBk) num_threads(2)
+    for(i=0;i<I;i+=1)
+    {   
+        ptAi = ptA+i*K;
+        ptCi = ptC+i*J;
+        for(k=0;k<K;k+=1)
+        {   
+            ptBk = ptB+k*J;
+            Aik = ptAi[k]; 
+            
+            // actually g++ -O3 is capable of vectorizing this loop
+            #pragma omp simd
+            for(j=0;j<J;j+=1)
+            {   
+                ptCi[j] += Aik*ptBk[j];
+            }
+        }
+    }
+    
+    return C;
+}
+
+// for some reason, my block matrix mult is slower than my no block 
+MatrixXf block(MatrixXf A,MatrixXf B)
+{   
+
+    // block matrix multiplication
+    // in order to optimize memory accesses, I am using loop tiling and sequential accesses
+    // https://en.wikipedia.org/wiki/Loop_tiling
+    // https://en.wikipedia.org/wiki/Locality_of_reference
+    
+    int I = (int)A.rows();
+    int J = (int)B.cols();
+    int K = (int)B.rows();
+    
+    MatrixXf C(I,J);
+    C.setZero();
+    MatrixXf B_transpose = B.transpose();
+    
+    float * ptA = &A(0,0);
+    float * ptB = &B_transpose(0,0);
+    float * ptC = &C(0,0);
+    
+    int b = 32;
+    
+    int i, j, k, jb, kb;
+    float* ptAi, *ptCi, *ptBj;
+    float Cij;
+    
+    // default is shared for openmp
+    // #pragma omp parallel for private(i,j,k,Aik) num_threads(4)
+    for(kb=0;kb<K;kb+=b)
+    {   
+        for(jb=0;jb<J;jb+=b)
+        {   
+            // default is shared for openmp
+            // i and ib are merged
+            // #pragma omp parallel for private(i,j,k,Cij, ptAi, ptCi, ptBj) num_threads(4)
+            for(i=0;i<I;i+=1)
+            {   
+                ptAi = ptA+i*K+jb;
+                ptCi = ptC+i*J+jb;
+                
+                for(j=0;j<b;j+=1)
+                {   
+                    ptBj = ptB+(jb+j)*K;
+                    Cij = ptCi[j];
+                    
+                    // actually g++ -O3 is capable of vectorizing this loop
+                    #pragma omp simd reduction (+:Cij)
+                    for(k=0;k<b;k+=1)
+                    {   
+                        // ptCi[j] += Aik*ptBk[j];
+                        // Aik += Aik * 2;
+                        Cij += ptAi[k]*ptBj[k];
+                    }
+                    ptCi[j] = Cij;
+                }
+            }
+        }
+    }
+    
+    return C;
+}
