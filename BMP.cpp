@@ -96,7 +96,7 @@ MatrixXf deconcatenate(MatrixXi A)
 
 // Arithmetic gain = 32 (nb of bits) /3 (no fused and popcnt add) /256 (no avx) x32 (single float)= x1.35
 // Memory bandwidth gain = 256(no avx) /32 (nb of bits) *3(no fused and popcnt add) = x24
-// Actual gain = ?
+// Actual gain = x2.13
 MatrixXf BMP(MatrixXf A,MatrixXf B)
 { 
     // Binarization
