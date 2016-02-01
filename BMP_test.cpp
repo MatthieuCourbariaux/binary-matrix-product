@@ -7,7 +7,8 @@ using namespace std;
 
 float float_sign(float x)
 {
-    return (x>=0);
+    // return (x>=0);
+    return 2. * (x>=0) - 1.;
 }
 
 int main(int argc, char* argv[])

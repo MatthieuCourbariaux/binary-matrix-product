@@ -110,7 +110,7 @@ MatrixXf BMP(MatrixXf A,MatrixXf B)
     int i, j, k;
 
     MatrixXf C(I,J);
-    C.setZero();
+    // C.setZero();
     
     // cout<<"Ab.rows() = "<<Ab.rows()<<endl;
     // cout<<"Ab.cols() = "<<Ab.cols()<<endl;
@@ -137,13 +137,17 @@ MatrixXf BMP(MatrixXf A,MatrixXf B)
         for(j=0;j<J;j+=1)
         {   
             ptBj = ptB+j*K;
-            Cij = ptCi[j];
+            // Cij =  ptCi[j];
+            Cij =  0.;
             
             for(k=0;k<K;k+=1)
             {   
-                Cij += (float)__builtin_popcount(ptAi[k]&ptBj[k]);
+                // Cij += (float)__builtin_popcount(ptAi[k]&ptBj[k]);
+                // Cij += (float) 2.* __builtin_popcount(~(ptAi[k]^ptBj[k])) -32.;
+                Cij += (float)__builtin_popcount(~(ptAi[k]^ptBj[k]));
             }
-            ptCi[j] = Cij;
+            // ptCi[j] = 2* Cij -32*K  + ptCi[j];
+            ptCi[j] = 2* Cij -32*K;
         }
     }
     
