@@ -9,10 +9,13 @@ Written by Matthieu Courbariaux in 2015
 #include <Eigen/Core>
 using Eigen::MatrixXf;
 using Eigen::Matrix;
-typedef Matrix<unsigned long int,Eigen::Dynamic,Eigen::Dynamic> MatrixXdi;
+typedef Matrix<unsigned int,Eigen::Dynamic,Eigen::Dynamic> MatrixXi;
 
-unsigned long int float2bool(float* array);
-MatrixXdi binarize(MatrixXf A);
+unsigned int concatenate(float* array);
+MatrixXi concatenate(MatrixXf A);
+float* deconcatenate(unsigned int x);
+MatrixXf deconcatenate(MatrixXi A);
+
 MatrixXf BMP(MatrixXf A,MatrixXf B);
 
 #endif
